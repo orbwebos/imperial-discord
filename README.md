@@ -11,28 +11,20 @@ npm install imperial-discord discord.js
 ## Example usage (subject to change)
 
 ```ts
-import { Intents } from 'discord.js';
-import { ImperialClient } from 'imperial-discord';
+import { GatewayIntentBits } from 'discord.js';
+import { Imperial } from 'imperial-discord';
 
-const client = new ImperialClient({
+Imperial.start({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    Intents.FLAGS.GUILD_VOICE_STATES,
-    Intents.FLAGS.DIRECT_MESSAGES,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.DirectMessages,
   ],
-  logger: {
-    level: 'debug',
-  },
+  token: process.env.DISCORD_TOKEN
 });
-
-const sourcePath = '/path/to/bot/src';
-
-client.setupCommands(`${sourcePath}/commands`);
-client.setupHandlers(`${sourcePath}/handlers`);
-
-client.login(process.env.DISCORD_TOKEN);
 ```
 
 ## License
