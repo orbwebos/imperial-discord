@@ -1,5 +1,18 @@
 import { Client, Collection, GuildEmoji } from 'discord.js';
 
+/**
+ * A Collection (discord.js' extension of a Map) of all available emojis, with
+ * additional methods to setup the store and to refresh it.
+ *
+ * @example
+ * ```typescript
+ * client.emojiStore.setup();
+ * client.emojiStore.forEach((emoji) => console.log(emoji.name));
+ *
+ * client.emojiStore.refresh();
+ * console.log(client.emojiStore.size);
+ * ```
+ */
 export class EmojiStore extends Collection<string, GuildEmoji> {
   public client: Client;
 

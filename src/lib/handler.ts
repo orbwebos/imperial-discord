@@ -1,9 +1,24 @@
-export class Handler {
-  public name: string;
-  public once: boolean;
+import { Base } from './base';
 
-  public constructor(name: string, once: boolean) {
-    this.name = name;
-    this.once = once;
+export interface HandlerOptions {
+  name?: string;
+  once?: boolean;
+}
+
+export class Handler extends Base {
+  public name: string = '';
+  public once: boolean = false;
+
+  public constructor(options?: HandlerOptions) {
+    super();
+    if (options !== undefined && options !== null) {
+      this.name = options.name ? options.name : '';
+      this.once =
+        options.once !== undefined && options.once !== null
+          ? options.once
+          : false;
+    }
   }
+
+  public async execute?(...values: unknown[]): Promise<unknown>;
 }

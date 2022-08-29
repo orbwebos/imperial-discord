@@ -1,31 +1,31 @@
-import { CommandInteraction } from 'discord.js';
+import { Command } from './command';
 
 export class EmbedTitle {
-  public readonly response: string;
-  public readonly status: string;
-  public readonly error: string;
-  public readonly prompt: string;
-  public readonly choice: string;
-  public readonly cancelled: string;
-  public readonly processing: string;
-  public readonly stateError: string;
+  public response: string;
+  public status: string;
+  public error: string;
+  public prompt: string;
+  public choice: string;
+  public cancelled: string;
+  public processing: string;
+  public stateError: string;
 
-  public constructor(interaction: CommandInteraction) {
-    const commandNameFirstCap =
-      interaction.commandName.charAt(0).toUpperCase() +
-      interaction.commandName.slice(1);
+  public constructor(commandOrTemplate: Command | string) {
+    if (commandOrTemplate instanceof Command) {
+      this.setTitles(commandOrTemplate.name);
+    } else {
+      this.setTitles(commandOrTemplate);
+    }
+  }
 
-    const titleTemplate = !(interaction.options.getSubcommand(false) === null)
-      ? `${commandNameFirstCap} ${interaction.options.getSubcommand()}`
-      : `${interaction.commandName}`;
-
-    this.response = `${titleTemplate} response`;
-    this.status = `${titleTemplate} status`;
-    this.error = `${titleTemplate} error`;
-    this.prompt = `${titleTemplate} prompt`;
-    this.choice = `${titleTemplate} choice`;
-    this.cancelled = `${titleTemplate} cancelled`;
-    this.processing = `${titleTemplate} processing...`;
-    this.stateError = `${titleTemplate} state error`;
+  public setTitles(template: string) {
+    this.response = `${template} response`;
+    this.status = `${template} status`;
+    this.error = `${template} error`;
+    this.prompt = `${template} prompt`;
+    this.choice = `${template} choice`;
+    this.cancelled = `${template} cancelled`;
+    this.processing = `${template} processing...`;
+    this.stateError = `${template} state error`;
   }
 }

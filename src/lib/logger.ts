@@ -77,6 +77,7 @@ export interface Logger {
   trace(...values: readonly unknown[]): void;
 }
 
+// TODO: finish this class
 export class ImperialLogger implements Logger {
   public readonly internal: PinoLogger;
   public readonly level: LogLevel;
