@@ -1,35 +1,48 @@
-import { DMChannel, Message, ThreadChannel } from 'discord.js';
+import { Collection, DMChannel, Message, ThreadChannel } from 'discord.js';
+import { Command } from './command';
+import { Replier } from './replier';
+import { EmbedTitle } from './title';
 
-export async function processMessage(message: Message) {
-  if (message.author.bot) return;
-
-  const where =
-    message.channel instanceof DMChannel || message.channel.partial === true
-      ? 'through DMs'
-      : message.channel instanceof ThreadChannel
-      ? `in #${message.channel.name}, thread under #${message.channel.parent.name},`
-      : `in #${message.channel.name}`;
-
-  const commands = message.client.commandStore.filter(
-    (command) => command.hasMessage() && command.messageCallback(message)
-  );
-
-  if (!commands.size) return false;
-
-  const promises: Promise<any>[] = [];
-  for (const [, command] of commands) {
-    message.client.logger.info(
-      `${message.author.tag} ${where} triggered a message command: ${command.name}`
-    );
-
-    promises.push(command.messageExecute(message));
+export async function commandsTriggeredByMessage(
+  message: Message
+): Promise<Command[] | undefined> {
+  if (message.author.bot) {
+    return;
   }
 
-  (await Promise.allSettled(promises)).forEach((promise) => {
-    if (promise.status === 'rejected') {
-      throw promise.reason;
+  const commands: Command[] = [];
+  for (const [, command] of message.client.commandStore) {
+    if (command.hasMessage() && (await command.runMessageTrigger(message))) {
+      commands.push(command);
     }
-  });
+  }
 
-  return true;
+  if (!commands.length) {
+    return;
+  }
+
+  return commands;
+}
+
+export function variantsMessageTrigger(
+  content: string,
+  ...variants: string[]
+): boolean {
+  const dot = '.';
+
+  if (!content.startsWith(dot)) {
+    return false;
+  }
+
+  const noPrefix = content.toLowerCase().replace(dot, '');
+
+  const separated = variants.map((variant) =>
+    variant.toLowerCase().split(/[\s-_.,]+/)
+  );
+
+  const finalVariants = separated.flatMap((sep) =>
+    sep.length === 1 ? [sep[0]] : [sep.join('-'), sep.join('_'), sep.join('')]
+  );
+
+  return finalVariants.some((word) => noPrefix.startsWith(word));
 }

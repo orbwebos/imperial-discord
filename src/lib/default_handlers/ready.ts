@@ -7,6 +7,15 @@ export class ReadyHandler extends Handler {
   }
 
   public async execute(client: Client) {
-    client.logger.info(`Ready. Logged in as ${client.user.tag}`);
+    const transcurred =
+      client.readyAt.getTime() - client.instantiatedAt.getTime();
+
+    client.logger.info(
+      `Initialized in ${transcurred}ms. User tag: ${client.user.tag}`
+    );
+
+    if (client.shouldRegisterCommands !== false) {
+      return client.smartRegisterCommands();
+    }
   }
 }

@@ -1,6 +1,3 @@
-import Pino, { LogFn as PinoLogFn } from 'pino';
-import type { Logger as PinoLogger } from 'pino';
-
 export const enum LogLevel {
   Trace = 10,
   Debug = 20,
@@ -38,21 +35,23 @@ export function logLevelToString(logLevel: LogLevel | LogLevelString) {
 }
 
 export function logLevelToNumber(logLevel: LogLevelString | LogLevel) {
-  if (typeof logLevel === 'number') return logLevel;
+  if (typeof logLevel === 'number') {
+    return logLevel;
+  }
 
   switch (logLevel) {
     case 'trace':
-      return 10;
+      return LogLevel.Trace;
     case 'debug':
-      return 20;
+      return LogLevel.Debug;
     case 'info':
-      return 30;
+      return LogLevel.Info;
     case 'warn':
-      return 40;
+      return LogLevel.Warn;
     case 'error':
-      return 50;
+      return LogLevel.Error;
     case 'fatal':
-      return 60;
+      return LogLevel.Fatal;
   }
 }
 
@@ -79,53 +78,67 @@ export interface Logger {
 
 // TODO: finish this class
 export class ImperialLogger implements Logger {
-  public readonly internal: PinoLogger;
   public readonly level: LogLevel;
 
   public constructor(options: LoggerOptions) {
-    this.level = this.level ? logLevelToNumber(options.level) : LogLevel.Info;
+    const defaultLevel =
+      process.env.NODE_ENV === 'production' ? LogLevel.Info : LogLevel.Debug;
 
-    this.internal = Pino({
-      name: options.name ? options.name : 'Imperial',
-      level: logLevelToString(this.level),
-    });
+    this.level = options.level ? logLevelToNumber(options.level) : defaultLevel;
   }
 
   public fatal(...values: readonly unknown[]): void {
-    this.write(this.internal.fatal, ...values);
+    this.write(LogLevel.Fatal, ...values);
   }
 
   public error(...values: readonly unknown[]): void {
-    this.write(this.internal.error, ...values);
+    this.write(LogLevel.Error, ...values);
   }
 
   public warn(...values: readonly unknown[]): void {
-    this.write(this.internal.warn, ...values);
+    this.write(LogLevel.Warn, ...values);
   }
 
   public info(...values: readonly unknown[]): void {
-    this.write(this.internal.info, ...values);
+    this.write(LogLevel.Info, ...values);
   }
 
   public debug(...values: readonly unknown[]): void {
-    this.write(this.internal.debug, ...values);
+    this.write(LogLevel.Debug, ...values);
   }
 
   public trace(...values: readonly unknown[]): void {
-    this.write(this.internal.trace, ...values);
+    this.write(LogLevel.Trace, ...values);
   }
 
-  private write(fn: PinoLogFn, ...values: readonly unknown[]): void {
-    const obj = values.length > 0 ? (values[0] as object) : null;
-    const msg = values.length > 1 ? (values[1] as string) : null;
-    const rest = values.length > 2 ? values.slice(values.length - 2) : null;
+  public logFor(level: LogLevel | LogLevelString): boolean {
+    const lv = typeof level === 'string' ? logLevelToNumber(level) : level;
 
-    if (msg === null) {
-      fn.bind(this.internal)(obj);
-    } else if (rest === null) {
-      fn.bind(this.internal)(obj, msg);
-    } else {
-      fn.bind(this.internal)(obj, msg, ...rest);
+    return lv >= this.level;
+  }
+
+  public static getDateString(): string {
+    const date = new Date();
+
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+
+    return localDate.toISOString().split('.')[0].replace('T', ' ');
+  }
+
+  private write(level: LogLevel, ...values: readonly unknown[]): void {
+    if (this.logFor(level)) {
+      const logFn =
+        level == LogLevel.Fatal || level == LogLevel.Error
+          ? console.error
+          : console.log;
+
+      logFn(
+        `[${ImperialLogger.getDateString()} ${logLevelToString(
+          level
+        ).toUpperCase()}]`,
+        ...values
+      );
     }
   }
 }

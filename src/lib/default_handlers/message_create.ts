@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 import { Handler } from '../handler';
-import { processMessage } from '../message';
+import { commandsTriggeredByMessage } from '../message';
 
 export class MessageCreateHandler extends Handler {
   public constructor() {
@@ -8,6 +8,12 @@ export class MessageCreateHandler extends Handler {
   }
 
   public async execute(message: Message) {
-    processMessage(message);
+    const commands = await commandsTriggeredByMessage(message);
+
+    if (!commands) {
+      return;
+    }
+
+    return this.client.emit('messageCommandRun', message, commands);
   }
 }

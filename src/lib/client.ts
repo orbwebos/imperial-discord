@@ -1,13 +1,17 @@
 import { readdirSync, PathLike } from 'fs';
-import { join } from 'path';
+import { join, dirname, resolve, basename } from 'path';
 import {
   Client,
   ClientOptions,
-  Collection,
   SlashCommandBuilder,
   RESTPostAPIApplicationCommandsJSONBody,
   REST,
   Routes,
+  ContextMenuCommandBuilder,
+  ChatInputApplicationCommandData,
+  UserApplicationCommandData,
+  MessageApplicationCommandData,
+  ApplicationCommand,
 } from 'discord.js';
 import { EmojiStore } from './emoji_store';
 import {
@@ -15,13 +19,20 @@ import {
   ImperialClientOptions,
 } from './client_options';
 import { ImperialLogger, Logger } from './logger';
-import { Command } from './command';
+import { ChatInputCommandBuilder, Command } from './command';
 import type { Handler } from './handler';
-import { depthTwoAbsoluteSync, isNothing, isNullOrUndefined } from './util';
+import {
+  readdirDepthTwoAbsoluteSync,
+  isNullOrUndefined,
+  isNullishOrEmpty,
+} from './util';
 import { ReadyHandler } from './default_handlers/ready';
 import { InteractionCreateHandler } from './default_handlers/interaction_create';
 import { MessageCreateHandler } from './default_handlers/message_create';
 import { getProcessPath, getVersion } from './root_path';
+import { CommandStore } from './command_store';
+import { defaultRegisteringSelector } from './smart_register';
+import { MessageCommandRunHandler } from './default_handlers/message_command_run';
 
 /**
  * The extension of discord.js' Client class which is at the heart of Imperial Discord.
@@ -38,6 +49,15 @@ export class ImperialClient<
   /** The bot version. */
   public version: string;
 
+  /** A list of all Discord user IDs that are to be recognized as owners. */
+  public ownerIds: string[];
+
+  /** The date at which the Client was instantiated. */
+  public instantiatedAt: Date;
+
+  /** The default category name to be given to commands without one, that aren't in a subdirectory. */
+  public defaultCategoryName: string;
+
   /** The directory from which the other paths are relative by default. */
   public baseDirectory: string;
 
@@ -47,14 +67,19 @@ export class ImperialClient<
   /** The directory in which to search for handlers. */
   public handlersDirectory: string;
 
+  /** Whether the client should attempt to register commands at startup. */
+  public shouldRegisterCommands: boolean;
+
   /** The commands store. */
-  public commandStore: Collection<string, Command>;
+  public commandStore: CommandStore;
 
   /** The Emoji store. */
   public emojiStore: EmojiStore;
 
   public constructor(options: ClientOptions) {
     super(options);
+
+    this.instantiatedAt = new Date();
 
     if (options.logger === null || options.logger === undefined) {
       this.logger = new ImperialLogger({});
@@ -66,6 +91,8 @@ export class ImperialClient<
 
     this.name = options.name;
     this.version = options.version ?? getVersion();
+    this.ownerIds = options.ownerIds ?? [];
+    this.defaultCategoryName = options.defaultCategoryName ?? 'general';
 
     this.baseDirectory = options.baseDirectory ?? getProcessPath();
     this.commandsDirectory =
@@ -73,7 +100,7 @@ export class ImperialClient<
     this.handlersDirectory =
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
-    this.commandStore = new Collection();
+    this.commandStore = new CommandStore(this);
     this.emojiStore = new EmojiStore();
   }
 
@@ -95,6 +122,9 @@ export class ImperialClient<
     // that the user marked as a command
     // eslint-disable-next-line import/no-dynamic-require, global-require
     const raw = require(path);
+    // TODO: search by class signature (like object methods), rather than by
+    // name signifier (like ending in "command"), so that the user can name
+    // their command classes anything
     const commandName = Object.keys(raw).find((s) =>
       s.toLowerCase().endsWith('command')
     );
@@ -108,11 +138,20 @@ export class ImperialClient<
     const CmdConst = raw[commandName] as typeof Command;
     const command = new CmdConst();
 
-    // Derives a name for the command if none was given
-    if (!command.name) {
-      const dashesLower = commandName.replace(/([A-Z])/g, '-$1').toLowerCase();
-      const nameResult = dashesLower.substring(1, dashesLower.lastIndexOf('-'));
-      command.name = nameResult;
+    // Derives the command's category if none was given
+    if (!command.category) {
+      const dirpath = dirname(path);
+
+      if (dirpath === resolve(this.commandsDirectory)) {
+        command.category = this.defaultCategoryName;
+      } else {
+        command.category = basename(dirpath.toLowerCase());
+      }
+    }
+
+    // Derives the command's environment context if none is set
+    if (!command.environment) {
+      command.environment = { path };
     }
 
     // Finally, populates the command's Base class
@@ -122,7 +161,7 @@ export class ImperialClient<
   }
 
   public getCommandsInPath(path: PathLike): Command[] {
-    const commandFiles = depthTwoAbsoluteSync(path as string) // fix typing
+    const commandFiles = readdirDepthTwoAbsoluteSync(path as string) // fix typing
       .filter((filePath) => filePath.endsWith('.js'));
 
     return commandFiles.map((filePath) => this.processCommandPath(filePath));
@@ -132,12 +171,15 @@ export class ImperialClient<
     this.getCommandsInPath(path).forEach((command) =>
       this.addCommandToStore(command)
     );
+
+    this.logger.info('Command store loaded.');
   }
 
   public async setupDefaultHandlers(options: DefaultHandlersOptions) {
     const shouldRegister = (o: boolean) => isNullOrUndefined(o) || o === true;
     const handlers = [
       ReadyHandler,
+      MessageCommandRunHandler,
       InteractionCreateHandler,
       MessageCreateHandler,
     ];
@@ -181,7 +223,7 @@ export class ImperialClient<
     // Derives the name if none was given
     if (handlerInstance.name === '') {
       // Throws if no possible name was found
-      if (isNothing(name)) {
+      if (isNullishOrEmpty(name)) {
         throw new Error('handler must have a name to be instantiated');
       }
 
@@ -195,9 +237,11 @@ export class ImperialClient<
   }
 
   public async setupHandlers(path: PathLike) {
-    const eventFiles = readdirSync(path).filter((file) => file.endsWith('.js'));
+    const handlerFiles = readdirSync(path).filter((file) =>
+      file.endsWith('.js')
+    );
 
-    eventFiles.forEach((file: string) => {
+    handlerFiles.forEach((file: string) => {
       // eslint-disable-next-line global-require, import/no-dynamic-require
       const raw = require(`${path}/${file}`);
       const handler = this.instantiateHandler(
@@ -219,64 +263,159 @@ export class ImperialClient<
         });
       }
     });
+
+    this.logger.info('Event handlers loaded.');
   }
 
-  public async registerCommands(options: CommandRegisterOptions) {
-    if (isNothing(options.guildId) && !options.global) {
+  public isOwner(id: string): boolean {
+    return this.ownerIds.includes(id);
+  }
+
+  /**
+   * Registers the user's commands using the options that were passed to each.
+   */
+  public async smartRegisterCommands(options?: SmartRegisterOptions) {
+    const store = options?.store ?? this.commandStore;
+
+    const commands = await (options?.selectingFn
+      ? options.selectingFn(store)
+      : defaultRegisteringSelector(store));
+
+    // exits early if the previous operation yielded no commands
+    if (!commands.length) {
+      return this.logger.info('Registered no changes in application commands.');
+    }
+
+    // filters the commands so that only those with data to register remain
+    const registerableCommands = commands.filter((command) =>
+      command.hasApplicationCommandsRegisteringData()
+    );
+
+    // filters the command array to include only those that that passed register
+    // options for guilds
+    const guildCommands = registerableCommands.filter(
+      (command) => command.registerOptions?.guilds?.length
+    );
+
+    // filters the command array to include only those that explicitly request
+    // global registration
+    const globalCommands = registerableCommands.filter(
+      (command) => command.registerOptions?.global === true
+    );
+
+    if (guildCommands) {
+      // creates a list of all guild IDs and discards duplicate IDs
+      const guildIds = [
+        ...new Set(
+          guildCommands.flatMap((command) => command.registerOptions.guilds)
+        ),
+      ];
+
+      // for each guild ID, calls the register method on all the commands that
+      // included the ID
+      guildIds.forEach((guildId) =>
+        guildCommands
+          .filter((command) => command.registerOptions.guilds.includes(guildId))
+          .forEach((cmd) => this.registerOrUpdateAllAvailableData(cmd, guildId))
+      );
+    }
+
+    // registers commands globally if any were found
+    if (globalCommands) {
+      globalCommands.forEach((command) =>
+        this.registerOrUpdateAllAvailableData(command)
+      );
+    }
+
+    this.logger.info('Registered one or more application commands.');
+  }
+
+  public registerOrUpdateAllAvailableData(command: Command, guildId?: string) {
+    const options: CommandRegisterOptions = {
+      guildId,
+      global: !Boolean(guildId),
+      command: null,
+    };
+
+    if (command?.applicationCommandsData?.chatInput) {
+      options['command'] = command.applicationCommandsData.chatInput;
+
+      this.registerOrUpdateApplicationCommand(options);
+    }
+
+    if (command?.applicationCommandsData?.userContextMenu) {
+      options['command'] = command.applicationCommandsData.userContextMenu;
+
+      this.registerOrUpdateApplicationCommand(options);
+    }
+
+    if (command?.applicationCommandsData?.messageContextMenu) {
+      options['command'] = command.applicationCommandsData.messageContextMenu;
+
+      this.registerOrUpdateApplicationCommand(options);
+    }
+  }
+
+  public async registerOrUpdateApplicationCommand(
+    options: CommandRegisterOptions
+  ) {
+    if (isNullishOrEmpty(options.guildId) && !options.global) {
       throw new Error(
         'a guild must be specified for registering commands or the global option should be true'
       );
     }
 
-    if (!options.commands.length) {
-      throw new Error('no commands provided to register');
+    if (!options.command) {
+      throw new Error('no command provided to register');
     }
 
-    if (!this.isReady()) {
-      if (isNothing(options.token)) {
-        throw new Error(
-          'no token passed to register commands in client not logged in'
-        );
-      }
-      if (isNothing(options.clientId)) {
-        throw new Error(
-          'no client ID passed to register commands in client not logged in'
-        );
-      }
+    if (!this.token && !options.token) {
+      throw new Error(
+        'no token passed to register commands in client not logged in'
+      );
     }
-
-    const rest = new REST({ version: '10' }).setToken(
-      options.token ?? this.token
-    );
-    const commands = options.commands.map(
-      (
-        command:
-          | Command
-          | SlashCommandBuilder
-          | RESTPostAPIApplicationCommandsJSONBody
-      ) => {
-        if (command instanceof Command) {
-          return command.chatInputData;
-        } else if (command instanceof SlashCommandBuilder) {
-          return command.toJSON();
-        }
-      }
-    );
-
-    if (!options.global) {
-      return rest.put(
-        Routes.applicationGuildCommands(
-          options.clientId ?? this.user.id,
-          options.guildId
-        ),
-        { body: commands }
+    if (!this.user.id && !options.clientId) {
+      throw new Error(
+        'no client ID passed to register commands in client not logged in'
       );
     }
 
-    return rest.put(
-      Routes.applicationCommands(options.clientId ?? this.user.id),
-      { body: commands }
+    const manager = this.application.commands;
+    const command = commandDataToRegisterable(options.command);
+
+    if (options.global) {
+      const globalCommandsData = await manager.fetch({
+        withLocalizations: true,
+      });
+
+      const applicationCommand = globalCommandsData.find(
+        (value) => value.name === command.name && value.type === command.type
+      );
+
+      if (applicationCommand) {
+        return manager.edit(applicationCommand, command);
+      } else {
+        return manager.create(command);
+      }
+    }
+
+    const guildCommandsData = await manager.fetch({
+      guildId: options.guildId,
+      withLocalizations: true,
+    });
+
+    const applicationCommand = guildCommandsData.find(
+      (value) => value.name === command.name && value.type === command.type
     );
+
+    const guildCommandsManager = (await this.guilds.fetch(options.guildId))
+      .commands;
+
+    if (applicationCommand) {
+      return guildCommandsManager.edit(applicationCommand, command);
+    } else {
+      return guildCommandsManager.create(command);
+    }
   }
 
   public async login(token?: string): Promise<string> {
@@ -287,11 +426,45 @@ export class ImperialClient<
   }
 }
 
+interface SmartRegisterOptions {
+  store?: CommandStore;
+  selectingFn?: (store: CommandStore) => Promise<Command[]>;
+}
+
+function commandDataToRegisterable(
+  data:
+    | ChatInputCommandBuilder
+    | ChatInputApplicationCommandData
+    | ContextMenuCommandBuilder
+    | UserApplicationCommandData
+    | MessageApplicationCommandData
+):
+  | RESTPostAPIApplicationCommandsJSONBody
+  | ChatInputApplicationCommandData
+  | UserApplicationCommandData
+  | MessageApplicationCommandData {
+  if (
+    data instanceof SlashCommandBuilder ||
+    data instanceof ContextMenuCommandBuilder
+  ) {
+    return data.toJSON();
+  } else {
+    return data as
+      | RESTPostAPIApplicationCommandsJSONBody
+      | ChatInputApplicationCommandData
+      | UserApplicationCommandData
+      | MessageApplicationCommandData;
+  } // TODO: should I do this?
+}
+
 interface CommandRegisterOptions {
-  commands:
-    | Command[]
-    | SlashCommandBuilder[]
-    | RESTPostAPIApplicationCommandsJSONBody[];
+  command:
+    | ChatInputCommandBuilder
+    | ChatInputApplicationCommandData
+    | ContextMenuCommandBuilder
+    | UserApplicationCommandData
+    | ContextMenuCommandBuilder
+    | MessageApplicationCommandData;
   guildId?: string;
   global?: boolean;
   token?: string;
@@ -303,11 +476,17 @@ declare module 'discord.js' {
     readonly logger: Logger;
     name: string;
     version: string;
+    ownerIds: string[];
+    instantiatedAt: Date;
+    defaultCategoryName: string;
     baseDirectory: string;
     commandsDirectory: string;
     handlersDirectory: string;
+    shouldRegisterCommands: boolean;
     emojiStore: EmojiStore;
-    commandStore: Collection<string, Command>;
+    commandStore: CommandStore;
+
+    smartRegisterCommands(options?: SmartRegisterOptions): Promise<void>;
   }
 
   interface ClientOptions extends ImperialClientOptions {}

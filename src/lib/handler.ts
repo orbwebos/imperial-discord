@@ -1,6 +1,7 @@
 import { Base } from './base';
 
 export interface HandlerOptions {
+  baseOptions?: Base.ClientOrOptions;
   name?: string;
   once?: boolean;
 }
@@ -10,14 +11,10 @@ export class Handler extends Base {
   public once: boolean = false;
 
   public constructor(options?: HandlerOptions) {
-    super();
-    if (options !== undefined && options !== null) {
-      this.name = options.name ? options.name : '';
-      this.once =
-        options.once !== undefined && options.once !== null
-          ? options.once
-          : false;
-    }
+    super(options?.baseOptions);
+
+    this.name = options?.name ?? this.name;
+    this.once = options?.once ?? this.once;
   }
 
   public async execute?(...values: unknown[]): Promise<unknown>;

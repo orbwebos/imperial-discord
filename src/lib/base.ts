@@ -13,7 +13,7 @@ export abstract class Base {
     }
   }
 
-  public populateBase(optionsOrClient: DefaultClientOrOptions) {
+  public populateBase(optionsOrClient: DefaultClientOrOptions): void {
     if (optionsOrClient instanceof Client) {
       this.client = optionsOrClient;
       this.logger = optionsOrClient.logger;
@@ -22,6 +22,12 @@ export abstract class Base {
       this.logger = optionsOrClient.logger;
     }
   }
+}
+
+export interface BaseCompliant {
+  client: Client;
+  logger: Logger;
+  populateBase(optionsOrClient: Base.ClientOrOptions): void;
 }
 
 // eslint-disable-next-line no-redeclare, import/export

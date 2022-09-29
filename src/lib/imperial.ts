@@ -12,6 +12,8 @@ export class Imperial {
 
     if (!isNullOrUndefined(options.token)) {
       await client.login(options.token);
+
+      client.shouldRegisterCommands = options.registerCommands ?? true;
     }
 
     return client;

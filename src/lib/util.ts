@@ -1,28 +1,30 @@
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
-export function isNullOrUndefined(o: any): boolean {
+export type Nullish = null | undefined;
+
+export function isNullOrUndefined(o: unknown): o is Nullish {
   return o === null || o === undefined;
 }
 
-/**
- * @param o The object.
- * @returns Whether the object is null, undefined, an empty object, an empty array, or an empty string.
- */
-export function isNothing(o: any): boolean {
-  return o === null || o === undefined || o === {} || o === [] || o === '';
+export function isNullishOrEmpty(o: unknown): o is Nullish | '' | [] {
+  return isNullOrUndefined(o) || !(o as string | unknown[]).length;
 }
+
+export function isFunction(o: unknown): o is Function {
+  return typeof o === 'function';
+}
+
+export type MaybePromise<T> = T | Promise<T>;
 
 export function readdirAbsoluteSync(path: string): string[] {
   return readdirSync(path).map((file) => join(path, file));
 }
 
-export function depthTwoAbsoluteSync(path: string): string[] {
-  return readdirAbsoluteSync(path).flatMap((filePath) => {
-    if (statSync(filePath).isDirectory()) {
-      return readdirAbsoluteSync(filePath);
-    } else {
-      return [filePath];
-    }
-  });
+export function readdirDepthTwoAbsoluteSync(path: string): string[] {
+  return readdirAbsoluteSync(path).flatMap((filePath) =>
+    statSync(filePath).isDirectory()
+      ? readdirAbsoluteSync(filePath)
+      : [filePath]
+  );
 }
