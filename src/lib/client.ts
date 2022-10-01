@@ -33,6 +33,7 @@ import { getProcessPath, getVersion } from './root_path';
 import { CommandStore } from './command_store';
 import { defaultRegisteringSelector } from './smart_register';
 import { MessageCommandRunHandler } from './default_handlers/message_command_run';
+import { base } from './base';
 
 /**
  * The extension of discord.js' Client class which is at the heart of Imperial Discord.
@@ -81,6 +82,8 @@ export class ImperialClient<
 
     this.instantiatedAt = new Date();
 
+    base.client = this;
+
     if (options.logger === null || options.logger === undefined) {
       this.logger = new ImperialLogger({});
     } else if ('info' in options.logger) {
@@ -88,6 +91,8 @@ export class ImperialClient<
     } else {
       this.logger = new ImperialLogger(options.logger);
     }
+
+    base.logger = this.logger;
 
     this.name = options.name;
     this.version = options.version ?? getVersion();
