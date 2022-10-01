@@ -1,20 +1,20 @@
 import { Client, Collection } from 'discord.js';
-import { Base, BaseCompliant } from './base';
+import { Component, ComponentCompliant } from './component';
 import { Command } from './command';
 import { Logger } from './logger';
 
 export class CommandStore
   extends Collection<string, Command>
-  implements BaseCompliant
+  implements ComponentCompliant
 {
   client: Client;
   logger: Logger;
 
-  public constructor(optionsOrClient?: Base.ClientOrOptions) {
+  public constructor(optionsOrClient?: Component.Options) {
     super();
 
     if (optionsOrClient) {
-      this.populateBase(optionsOrClient);
+      this.populateComponent(optionsOrClient);
     }
   }
 
@@ -26,7 +26,7 @@ export class CommandStore
     return Array.from(this.values());
   }
 
-  public populateBase(options: Base.ClientOrOptions) {
+  public populateComponent(options: Component.Options) {
     if (options instanceof Client) {
       this.client = options;
       this.logger = options.logger;

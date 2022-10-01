@@ -154,8 +154,8 @@ export class ImperialClient<
       command.environment = { path };
     }
 
-    // Finally, populates the command's Base class
-    command.populateBase(this);
+    // Finally, populates the command's component fields
+    command.populateComponent(this);
 
     return command;
   }
@@ -217,8 +217,8 @@ export class ImperialClient<
   ): Handler {
     const handlerInstance = new HandlerConstructor();
 
-    // Populates the handler's Base class
-    handlerInstance.populateBase(this);
+    // Populates the handler's component fields
+    handlerInstance.populateComponent(this);
 
     // Derives the name if none was given
     if (handlerInstance.name === '') {

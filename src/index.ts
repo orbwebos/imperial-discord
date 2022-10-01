@@ -1,5 +1,5 @@
-export * from './lib/base_options';
-export * from './lib/base';
+export * from './lib/component_options';
+export * from './lib/component';
 export * from './lib/client_options';
 export * from './lib/client';
 export * from './lib/command_store';

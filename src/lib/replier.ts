@@ -7,7 +7,7 @@ import {
   ReplyMessageOptions,
   APIEmbed,
 } from 'discord.js';
-import { Base } from './base';
+import { Component } from './component';
 import { Command } from './command';
 import { BrandedEmbed } from './embeds';
 import { isNullOrUndefined } from './util';
@@ -28,7 +28,7 @@ type MixedReplierEmbedOptions<T> =
   | APIEmbed
   | APIEmbed[];
 
-export class EmbedReplyState extends Base {
+export class EmbedReplyState extends Component {
   public messageOptions: ReplyMessageOptions | InteractionReplyOptions;
   public ephemeral: InteractionReplyOptions['ephemeral'];
   public embedUserName: string;
@@ -38,7 +38,7 @@ export class EmbedReplyState extends Base {
   public embeds: APIEmbed[];
 
   public constructor(
-    clientOrOptions: Base.ClientOrOptions,
+    clientOrOptions: Component.Options,
     userName: string,
     avatar: string
   ) {
@@ -172,7 +172,7 @@ export class EmbedReplyState extends Base {
   }
 }
 
-export class Replier extends Base {
+export class Replier extends Component {
   original: Message | ChatInputCommandInteraction;
 
   public constructor(

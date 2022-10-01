@@ -1,5 +1,5 @@
 import { ColorResolvable, EmbedBuilder } from 'discord.js';
-import { Base } from './base';
+import { Component } from './component';
 
 export interface BrandedEmbedOptions {
   title: string;
@@ -9,7 +9,7 @@ export interface BrandedEmbedOptions {
   color?: ColorResolvable;
 }
 
-export class BrandedEmbed extends Base {
+export class BrandedEmbed extends Component {
   public construct(options: BrandedEmbedOptions): EmbedBuilder {
     return new EmbedBuilder()
       .setColor(options.color ?? '#7850bd')

@@ -5,12 +5,12 @@ import {
   SlashCommandBuilder,
   UserApplicationCommandData,
 } from 'discord.js';
-import { Base } from './base';
+import { Component } from './component';
 import { ChatInputCommandBuilder } from './command';
 import { isFunction } from './util';
 
-// TODO: when all is said and done, check if it really needs to extend Base
-export class ApplicationCommandDataManager extends Base {
+// TODO: when all is said and done, check if it really needs to extend Component
+export class ApplicationCommandDataManager extends Component {
   public normalizeChatInputData(
     data: ChatInputCommandBuilder | ChatInputApplicationCommandData
   ) {

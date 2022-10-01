@@ -13,8 +13,7 @@ import {
   ApplicationCommandType,
 } from 'discord.js';
 import { ApplicationCommandDataManager } from './application_command';
-import { Base } from './base';
-import { ClientOrOptions } from './base_options';
+import { Component } from './component';
 import { Precondition, PreconditionResult } from './preconditions';
 import { MaybePromise } from './util';
 
@@ -45,7 +44,7 @@ export interface ApplicationCommandsData {
 
 export type MessageTrigger = (message: Message) => MaybePromise<boolean>;
 
-export class Command extends Base {
+export class Command extends Component {
   /** The command's name, in lowercase and kebab-case. */
   public name: string;
 
@@ -282,12 +281,12 @@ export class Command extends Base {
     return results;
   }
 
-  public override populateBase(optionsOrClient: ClientOrOptions): void {
-    super.populateBase(optionsOrClient);
+  public override populateComponent(options: Component.Options): void {
+    super.populateComponent(options);
 
     if (this.preconditions && this.preconditions.length) {
       this.preconditions.forEach((precondition) =>
-        precondition.populateBase(optionsOrClient)
+        precondition.populateComponent(options)
       );
     }
   }

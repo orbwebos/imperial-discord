@@ -1,9 +1,7 @@
 import { Client } from 'discord.js';
 import { Logger } from './logger';
 
-export interface BaseOptions {
+export interface ComponentOptions {
   client: Client;
   logger: Logger;
 }
-
-export type ClientOrOptions = BaseOptions | Client;

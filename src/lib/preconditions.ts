@@ -3,7 +3,7 @@ import {
   ContextMenuCommandInteraction,
   Message,
 } from 'discord.js';
-import { Base } from './base';
+import { Component } from './component';
 import {
   CommandType,
   ContextMapping,
@@ -31,7 +31,7 @@ export interface PreconditionResult {
 }
 
 export interface PreconditionOptions {
-  baseOptions?: Base.ClientOrOptions;
+  componentOptions?: Component.Options;
   name?: string;
   messageOverride?: ContextMapping<string>;
   messageAddition?: ContextMapping<string>;
@@ -47,14 +47,14 @@ function preconditionName(raw: string): string {
   return inter.charAt(0).toUpperCase() + inter.slice(1);
 }
 
-export abstract class Precondition extends Base {
+export abstract class Precondition extends Component {
   public name: string;
   public messageOverride: ContextMapping<string> = defaultContextMapping();
   public messageAddition: ContextMapping<string> = defaultContextMapping(''); // do this better
   private running: CommandType = CommandType.ChatInput;
 
   public constructor(options?: PreconditionOptions) {
-    super(options?.baseOptions);
+    super(options?.componentOptions);
 
     this.name = options?.name ?? preconditionName(this.constructor.name);
     this.messageOverride = options?.messageOverride;
@@ -76,7 +76,7 @@ export abstract class Precondition extends Base {
 
   private newInstance(options: errorMessageOptions): Precondition {
     return new (this.constructor as any)({
-      baseOptions: this.client,
+      componentOptions: this.client,
       name: this.name,
       messageOverride: options?.messageOverride ?? this.messageOverride,
       messageAddition: options?.messageAddition ?? this.messageAddition,
