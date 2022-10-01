@@ -1,3 +1,5 @@
+export * from './lib/base';
+export * from './lib/component_options';
 export * from './lib/component_options';
 export * from './lib/component';
 export * from './lib/client_options';
