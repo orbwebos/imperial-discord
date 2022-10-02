@@ -1,7 +1,8 @@
 import { Client, Collection } from 'discord.js';
-import { Component, ComponentCompliant } from './component';
+import { ComponentCompliant } from './component';
 import { Command } from './command';
 import { Logger } from './logger';
+import { base } from './base';
 
 export class CommandStore
   extends Collection<string, Command>
@@ -10,12 +11,11 @@ export class CommandStore
   client: Client;
   logger: Logger;
 
-  public constructor(optionsOrClient?: Component.Options) {
+  public constructor() {
     super();
 
-    if (optionsOrClient) {
-      this.populateComponent(optionsOrClient);
-    }
+    this.client = base.client;
+    this.logger = base.logger;
   }
 
   public keysToArray(): string[] {
@@ -24,15 +24,5 @@ export class CommandStore
 
   public valuesToArray(): Command[] {
     return Array.from(this.values());
-  }
-
-  public populateComponent(options: Component.Options) {
-    if (options instanceof Client) {
-      this.client = options;
-      this.logger = options.logger;
-    } else {
-      this.client = options.client;
-      this.logger = options.logger;
-    }
   }
 }

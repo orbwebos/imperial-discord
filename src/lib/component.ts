@@ -1,4 +1,5 @@
 import { Client } from 'discord.js';
+import { base } from './base';
 import { ComponentOptions } from './component_options';
 import { Logger } from './logger';
 
@@ -10,6 +11,8 @@ export abstract class Component {
   public constructor(options?: ComponentOptions | Client) {
     if (options) {
       this.populateComponent(options);
+    } else {
+      this.populateComponent(base.client);
     }
   }
 
@@ -27,7 +30,6 @@ export abstract class Component {
 export interface ComponentCompliant {
   client: Client;
   logger: Logger;
-  populateComponent(optionsOrClient: Component.Options): void;
 }
 
 // eslint-disable-next-line no-redeclare, import/export

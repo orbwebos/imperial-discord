@@ -105,7 +105,7 @@ export class ImperialClient<
     this.handlersDirectory =
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
-    this.commandStore = new CommandStore(this);
+    this.commandStore = new CommandStore();
     this.emojiStore = new EmojiStore();
   }
 
@@ -158,9 +158,6 @@ export class ImperialClient<
     if (!command.environment) {
       command.environment = { path };
     }
-
-    // Finally, populates the command's component fields
-    command.populateComponent(this);
 
     return command;
   }
@@ -221,9 +218,6 @@ export class ImperialClient<
     name?: string
   ): Handler {
     const handlerInstance = new HandlerConstructor();
-
-    // Populates the handler's component fields
-    handlerInstance.populateComponent(this);
 
     // Derives the name if none was given
     if (handlerInstance.name === '') {

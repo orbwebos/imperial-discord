@@ -281,9 +281,7 @@ export class Command extends Component {
     return results;
   }
 
-  public override populateComponent(options: Component.Options): void {
-    super.populateComponent(options);
-
+  public populatePreconditions(options: Component.Options): void {
     if (this.preconditions && this.preconditions.length) {
       this.preconditions.forEach((precondition) =>
         precondition.populateComponent(options)
