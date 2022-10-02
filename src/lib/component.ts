@@ -1,5 +1,5 @@
 import { Client } from 'discord.js';
-import { base } from './base';
+import { Base, base } from './base';
 import { ComponentOptions } from './component_options';
 import { Logger } from './logger';
 
@@ -24,6 +24,10 @@ export abstract class Component {
       this.client = options.client;
       this.logger = options.logger;
     }
+  }
+
+  public get base(): Base {
+    return base;
   }
 }
 
