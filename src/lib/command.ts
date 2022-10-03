@@ -280,14 +280,6 @@ export class Command extends Component {
 
     return results;
   }
-
-  public populatePreconditions(options: Component.Options): void {
-    if (this.preconditions && this.preconditions.length) {
-      this.preconditions.forEach((precondition) =>
-        precondition.populateComponent(options)
-      );
-    }
-  }
 }
 
 export type ChatInputCommandBuilder =

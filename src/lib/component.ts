@@ -9,20 +9,15 @@ export abstract class Component {
   public logger: Logger;
 
   public constructor(options?: ComponentOptions | Client) {
-    if (options) {
-      this.populateComponent(options);
-    } else {
-      this.populateComponent(base.client);
-    }
-  }
-
-  public populateComponent(options: ComponentOptions | Client): void {
     if (options instanceof Client) {
       this.client = options;
       this.logger = options.logger;
-    } else {
+    } else if (options) {
       this.client = options.client;
       this.logger = options.logger;
+    } else {
+      this.client = base.client;
+      this.logger = base.logger;
     }
   }
 
