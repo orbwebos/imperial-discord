@@ -8,8 +8,8 @@ export class CommandStore
   extends Collection<string, Command>
   implements ComponentCompliant
 {
-  client: Client;
-  logger: Logger;
+  public client: Client;
+  public logger: Logger;
 
   public constructor() {
     super();
