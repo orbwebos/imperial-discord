@@ -2,7 +2,7 @@ import { Client, Collection } from 'discord.js';
 import { ComponentCompliant } from './component';
 import { Command } from './command';
 import { Logger } from './logger';
-import { base } from './base';
+import { Base, base } from './base';
 
 export class CommandStore
   extends Collection<string, Command>
@@ -24,5 +24,9 @@ export class CommandStore
 
   public valuesToArray(): Command[] {
     return Array.from(this.values());
+  }
+
+  public get base(): Base {
+    return base;
   }
 }

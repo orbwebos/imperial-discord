@@ -19,4 +19,5 @@ export abstract class Component {
 export interface ComponentCompliant {
   client: Client;
   logger: Logger;
+  get base(): Base;
 }
