@@ -31,7 +31,6 @@ export interface PreconditionResult {
 }
 
 export interface PreconditionOptions {
-  componentOptions?: Component.Options;
   name?: string;
   messageOverride?: ContextMapping<string>;
   messageAddition?: ContextMapping<string>;
@@ -54,7 +53,7 @@ export abstract class Precondition extends Component {
   private running: CommandType = CommandType.ChatInput;
 
   public constructor(options?: PreconditionOptions) {
-    super(options?.componentOptions);
+    super();
 
     this.name = options?.name ?? preconditionName(this.constructor.name);
     this.messageOverride = options?.messageOverride;
@@ -76,7 +75,6 @@ export abstract class Precondition extends Component {
 
   private newInstance(options: errorMessageOptions): Precondition {
     return new (this.constructor as any)({
-      componentOptions: this.client,
       name: this.name,
       messageOverride: options?.messageOverride ?? this.messageOverride,
       messageAddition: options?.messageAddition ?? this.messageAddition,

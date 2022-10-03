@@ -37,12 +37,9 @@ export class EmbedReplyState extends Component {
   public embedBody: EmbedData['description'];
   public embeds: APIEmbed[];
 
-  public constructor(
-    clientOrOptions: Component.Options,
-    userName: string,
-    avatar: string
-  ) {
-    super(clientOrOptions);
+  public constructor(userName: string, avatar: string) {
+    super();
+
     this.embedUserName = userName;
     this.embedAvatarUrl = avatar;
     this.messageOptions = {};
@@ -155,7 +152,7 @@ export class EmbedReplyState extends Component {
 
   public getEmbeds(): APIEmbed[] {
     return [
-      new BrandedEmbed(this.client).construct({
+      new BrandedEmbed().construct({
         title: this.embedTitle,
         body: this.embedBody,
         userName: this.embedUserName,
@@ -178,7 +175,8 @@ export class Replier extends Component {
   public constructor(
     original: Message | ChatInputCommandInteraction | Command
   ) {
-    super(original.client);
+    super();
+
     if (original instanceof Command) {
       if (
         !(
@@ -209,7 +207,7 @@ export class Replier extends Component {
         ? this.original.user.displayAvatarURL()
         : this.original.author.displayAvatarURL();
 
-    const embedState = new EmbedReplyState(this.client, userName, avatarUrl)
+    const embedState = new EmbedReplyState(userName, avatarUrl)
       .extractOptionsTitle(titleOrOptions)
       .extractOptionsBody(bodyOrOptions)
       .extractOptionsEphemeral(ephemeralOrOptions);
