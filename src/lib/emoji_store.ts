@@ -1,4 +1,7 @@
 import { Client, Collection, GuildEmoji } from 'discord.js';
+import { Base, base } from './base';
+import { ComponentCompliant } from './component';
+import { Logger } from './logger';
 
 /**
  * A Collection (discord.js' extension of a Map) of all available emojis, with
@@ -13,17 +16,21 @@ import { Client, Collection, GuildEmoji } from 'discord.js';
  * console.log(client.emojiStore.size);
  * ```
  */
-export class EmojiStore extends Collection<string, GuildEmoji> {
+export class EmojiStore
+  extends Collection<string, GuildEmoji>
+  implements ComponentCompliant
+{
   public client: Client;
+  public logger: Logger;
 
-  /**
-   * @warning
-   * Don't use this function in the ImperialClient class, it would provoke a dependency cycle.
-   *
-   * @param client The Imperial client to extract the emojis from.
-   */
-  public setup(client: Client): void {
-    this.client = client;
+  public constructor() {
+    super();
+
+    this.client = base.client;
+    this.logger = base.logger;
+  }
+
+  public setup(): void {
     this.client.emojis.cache.forEach((value, key) => this.set(key, value));
   }
 
@@ -46,5 +53,9 @@ export class EmojiStore extends Collection<string, GuildEmoji> {
 
     this.clear();
     placeholderCache.forEach((value, key) => this.set(key, value));
+  }
+
+  public get base(): Base {
+    return base;
   }
 }
