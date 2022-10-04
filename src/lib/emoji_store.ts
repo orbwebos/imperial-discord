@@ -20,16 +20,6 @@ export class EmojiStore
   extends Collection<string, GuildEmoji>
   implements ComponentCompliant
 {
-  public client: Client;
-  public logger: Logger;
-
-  public constructor() {
-    super();
-
-    this.client = base.client;
-    this.logger = base.logger;
-  }
-
   public setup(): void {
     this.client.emojis.cache.forEach((value, key) => this.set(key, value));
   }
@@ -57,5 +47,13 @@ export class EmojiStore
 
   public get base(): Base {
     return base;
+  }
+
+  public get client(): Client {
+    return base.client;
+  }
+
+  public get logger(): Logger {
+    return base.logger;
   }
 }

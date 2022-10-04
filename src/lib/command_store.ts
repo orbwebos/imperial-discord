@@ -8,16 +8,6 @@ export class CommandStore
   extends Collection<string, Command>
   implements ComponentCompliant
 {
-  public client: Client;
-  public logger: Logger;
-
-  public constructor() {
-    super();
-
-    this.client = base.client;
-    this.logger = base.logger;
-  }
-
   public keysToArray(): string[] {
     return Array.from(this.keys());
   }
@@ -28,5 +18,13 @@ export class CommandStore
 
   public get base(): Base {
     return base;
+  }
+
+  public get client(): Client {
+    return base.client;
+  }
+
+  public get logger(): Logger {
+    return base.logger;
   }
 }
