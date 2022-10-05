@@ -1,5 +1,5 @@
 import type { Command } from './command';
-import type { CommandStore } from './command_store';
+import type { CommandRecord } from './command_record';
 import type { Logger, LoggerOptions } from './logger';
 
 export interface DefaultHandlersOptions {
@@ -18,7 +18,7 @@ export interface ImperialClientOptions {
   version?: string;
   ownerIds?: string[];
   registerCommands?: false;
-  smartRegisterSelector?: (store: CommandStore) => Promise<Command[]>;
+  smartRegisterSelector?: (record: CommandRecord) => Promise<Command[]>;
   defaultCategoryName?: string;
   defaultHandlers?: DefaultHandlersOptions;
 }

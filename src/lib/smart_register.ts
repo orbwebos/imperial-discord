@@ -9,7 +9,7 @@ import {
 } from 'fs';
 import { basename, join } from 'path';
 import { createHash } from 'crypto';
-import { CommandStore } from './command_store';
+import { CommandRecord } from './command_record';
 import { Command } from './command';
 import { readdirAbsoluteSync } from './util';
 import { getProcessPath } from './root_path';
@@ -100,9 +100,9 @@ export function removeStaleReferences(): CommandReference[] {
 }
 
 export async function defaultRegisteringSelector(
-  store: CommandStore
+  record: CommandRecord
 ): Promise<Command[]> {
-  const commands = store.valuesToArray();
+  const commands = record.valuesToArray();
 
   const commandPaths = commands.map((command) => command.environment.path);
 

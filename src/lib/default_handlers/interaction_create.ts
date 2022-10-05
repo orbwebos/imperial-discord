@@ -36,7 +36,7 @@ export class InteractionCreateHandler extends Handler {
       return;
     }
 
-    const command = client.commandStore.find((cmd) =>
+    const command = client.commandRecord.find((cmd) =>
       commandIsAppropiateToInteraction(cmd, interaction)
     );
 

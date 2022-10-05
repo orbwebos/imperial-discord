@@ -11,7 +11,7 @@ export async function commandsTriggeredByMessage(
   }
 
   const commands: Command[] = [];
-  for (const [, command] of message.client.commandStore) {
+  for (const [, command] of message.client.commandRecord) {
     if (command.hasMessage() && (await command.runMessageTrigger(message))) {
       commands.push(command);
     }

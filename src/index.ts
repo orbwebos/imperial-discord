@@ -2,7 +2,7 @@ export * from './lib/base';
 export * from './lib/component';
 export * from './lib/client_options';
 export * from './lib/client';
-export * from './lib/command_store';
+export * from './lib/command_record';
 export * from './lib/command';
 export * from './lib/embeds';
 export * from './lib/extended_collection';

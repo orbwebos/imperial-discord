@@ -29,7 +29,7 @@ import { ReadyHandler } from './default_handlers/ready';
 import { InteractionCreateHandler } from './default_handlers/interaction_create';
 import { MessageCreateHandler } from './default_handlers/message_create';
 import { getProcessPath, getVersion } from './root_path';
-import { CommandStore } from './command_store';
+import { CommandRecord } from './command_record';
 import { defaultRegisteringSelector } from './smart_register';
 import { MessageCommandRunHandler } from './default_handlers/message_command_run';
 import { base } from './base';
@@ -70,8 +70,8 @@ export class ImperialClient<
   /** Whether the client should attempt to register commands at startup. */
   public shouldRegisterCommands: boolean;
 
-  /** The commands store. */
-  public commandStore: CommandStore;
+  /** The commands record. */
+  public commandRecord: CommandRecord;
 
   /** The options for default Handlers that were passed to the constructor. */
   private defaultHandlersOptions: DefaultHandlersOptions;
@@ -107,15 +107,15 @@ export class ImperialClient<
     this.handlersDirectory =
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
-    this.commandStore = new CommandStore();
+    this.commandRecord = new CommandRecord();
   }
 
   /**
-   * Adds a command to the store.
+   * Adds a command to the record.
    * @param command The command to add.
    */
-  public addCommandToStore(command: Command): void {
-    this.commandStore.set(command.name, command);
+  public addCommandToRecord(command: Command): void {
+    this.commandRecord.set(command.name, command);
   }
 
   /**
@@ -172,10 +172,10 @@ export class ImperialClient<
 
   public async setupCommands(path: PathLike) {
     this.getCommandsInPath(path).forEach((command) =>
-      this.addCommandToStore(command)
+      this.addCommandToRecord(command)
     );
 
-    this.logger.info('Command store loaded.');
+    this.logger.info('Command record loaded.');
   }
 
   public async setupDefaultHandlers(options: DefaultHandlersOptions) {
@@ -275,11 +275,11 @@ export class ImperialClient<
    * Registers the user's commands using the options that were passed to each.
    */
   public async smartRegisterCommands(options?: SmartRegisterOptions) {
-    const store = options?.store ?? this.commandStore;
+    const record = options?.record ?? this.commandRecord;
 
     const commands = await (options?.selectingFn
-      ? options.selectingFn(store)
-      : defaultRegisteringSelector(store));
+      ? options.selectingFn(record)
+      : defaultRegisteringSelector(record));
 
     // exits early if the previous operation yielded no commands
     if (!commands.length) {
@@ -432,8 +432,8 @@ export class ImperialClient<
 }
 
 interface SmartRegisterOptions {
-  store?: CommandStore;
-  selectingFn?: (store: CommandStore) => Promise<Command[]>;
+  record?: CommandRecord;
+  selectingFn?: (record: CommandRecord) => Promise<Command[]>;
 }
 
 function commandDataToRegisterable(
@@ -488,7 +488,7 @@ declare module 'discord.js' {
     commandsDirectory: string;
     handlersDirectory: string;
     shouldRegisterCommands: boolean;
-    commandStore: CommandStore;
+    commandRecord: CommandRecord;
 
     smartRegisterCommands(options?: SmartRegisterOptions): Promise<void>;
   }
