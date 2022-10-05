@@ -13,7 +13,6 @@ import {
   MessageApplicationCommandData,
   ApplicationCommand,
 } from 'discord.js';
-import { EmojiStore } from './emoji_store';
 import {
   DefaultHandlersOptions,
   ImperialClientOptions,
@@ -74,9 +73,6 @@ export class ImperialClient<
   /** The commands store. */
   public commandStore: CommandStore;
 
-  /** The Emoji store. */
-  public emojiStore: EmojiStore;
-
   /** The options for default Handlers that were passed to the constructor. */
   private defaultHandlersOptions: DefaultHandlersOptions;
 
@@ -112,7 +108,6 @@ export class ImperialClient<
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
     this.commandStore = new CommandStore();
-    this.emojiStore = new EmojiStore();
   }
 
   /**
@@ -493,7 +488,6 @@ declare module 'discord.js' {
     commandsDirectory: string;
     handlersDirectory: string;
     shouldRegisterCommands: boolean;
-    emojiStore: EmojiStore;
     commandStore: CommandStore;
 
     smartRegisterCommands(options?: SmartRegisterOptions): Promise<void>;
