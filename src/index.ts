@@ -10,6 +10,7 @@ export * from './lib/handler';
 export * from './lib/logger';
 export * from './lib/message';
 export * from './lib/preconditions';
+export * from './lib/record';
 export * from './lib/replier';
 export * from './lib/title';
 export * from './lib/util';
