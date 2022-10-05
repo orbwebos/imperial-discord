@@ -77,6 +77,9 @@ export class ImperialClient<
   /** The Emoji store. */
   public emojiStore: EmojiStore;
 
+  /** The options for default Handlers that were passed to the constructor. */
+  private defaultHandlersOptions: DefaultHandlersOptions;
+
   public constructor(options: ClientOptions) {
     super(options);
 
@@ -98,6 +101,9 @@ export class ImperialClient<
     this.version = options.version ?? getVersion();
     this.ownerIds = options.ownerIds ?? [];
     this.defaultCategoryName = options.defaultCategoryName ?? 'general';
+
+    this.shouldRegisterCommands = options.registerCommands ?? true;
+    this.defaultHandlersOptions = options.defaultHandlers;
 
     this.baseDirectory = options.baseDirectory ?? getProcessPath();
     this.commandsDirectory =
@@ -418,10 +424,15 @@ export class ImperialClient<
   }
 
   public async login(token?: string): Promise<string> {
-    const returned = await super.login(token);
+    await this.setupCommands(this.commandsDirectory);
+    await this.setupDefaultHandlers(this.defaultHandlersOptions);
+    await this.setupHandlers(this.handlersDirectory);
+
+    const login = await super.login(token);
+
     this.name = this.name ?? this.user.username;
 
-    return returned;
+    return login;
   }
 }
 

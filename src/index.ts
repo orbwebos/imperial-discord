@@ -7,7 +7,6 @@ export * from './lib/command';
 export * from './lib/embeds';
 export * from './lib/emoji_store';
 export * from './lib/handler';
-export * from './lib/imperial';
 export * from './lib/logger';
 export * from './lib/message';
 export * from './lib/preconditions';

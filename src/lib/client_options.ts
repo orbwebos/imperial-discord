@@ -14,7 +14,6 @@ export interface ImperialClientOptions {
   baseDirectory?: string;
   commandsDirectory?: string;
   handlersDirectory?: string;
-  token?: string;
   name?: string;
   version?: string;
   ownerIds?: string[];
