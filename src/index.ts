@@ -5,7 +5,7 @@ export * from './lib/client';
 export * from './lib/command_store';
 export * from './lib/command';
 export * from './lib/embeds';
-export * from './lib/emoji_store';
+export * from './lib/extended_collection';
 export * from './lib/handler';
 export * from './lib/logger';
 export * from './lib/message';
