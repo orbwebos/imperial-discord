@@ -193,7 +193,7 @@ export class ImperialClient<
     ];
 
     for (const HandlerConstructor of handlers) {
-      const handler = this.instantiateHandler(HandlerConstructor);
+      const handler: Handler = new HandlerConstructor();
 
       if (isNullOrUndefined(options) || shouldRegister(options[handler.name])) {
         if (handler.once) {
@@ -213,34 +213,6 @@ export class ImperialClient<
     }
   }
 
-  /**
-   * Instantiates a Handler constructor.
-   * @param HandlerConstructor The Handler constructor to be instantiated.
-   * @param name The raw object name, to be used if the user didn't give a name.
-   * @returns An instance of Handler.
-   */
-  public instantiateHandler(
-    HandlerConstructor: new () => Handler,
-    name?: string
-  ): Handler {
-    const handlerInstance = new HandlerConstructor();
-
-    // Derives the name if none was given
-    if (handlerInstance.name === '') {
-      // Throws if no possible name was found
-      if (isNullishOrEmpty(name)) {
-        throw new Error('handler must have a name to be instantiated');
-      }
-
-      const withoutHandler = name.replace(/([A-Z])[a-z]*$/, '');
-      const nameResult =
-        withoutHandler.charAt(0).toLowerCase() + withoutHandler.substring(1);
-      handlerInstance.name = nameResult;
-    }
-
-    return handlerInstance;
-  }
-
   public async setupHandlers(path: PathLike) {
     const handlerFiles = readdirSync(path).filter((file) =>
       file.endsWith('.js')
@@ -249,10 +221,7 @@ export class ImperialClient<
     handlerFiles.forEach((file: string) => {
       // eslint-disable-next-line global-require, import/no-dynamic-require
       const raw = require(`${path}/${file}`);
-      const handler = this.instantiateHandler(
-        Object.values(raw)[0] as typeof Handler,
-        Object.keys(raw)[0]
-      );
+      const handler: Handler = new (Object.values(raw)[0] as typeof Handler)();
 
       if (handler.once) {
         this.once(handler.name, (...args) => {
