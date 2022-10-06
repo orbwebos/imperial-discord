@@ -16,7 +16,7 @@ export class Handler extends Component {
     this.once = options?.once ?? this.once;
   }
 
-  public async execute?(...values: unknown[]): Promise<unknown>;
+  public async run?(...values: unknown[]): Promise<unknown>;
 
   private deriveEventName(): string {
     const noSuffix = this.constructor.name.replace(/([A-Z])[a-z]*$/, '');

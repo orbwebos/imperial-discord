@@ -202,13 +202,13 @@ export class ImperialClient<
         if (handler.once) {
           this.once(handler.event, (...args) => {
             handler
-              .execute(...args, this)
+              .run(...args, this)
               .catch((error) => this.logger.error(error));
           });
         } else {
           this.on(handler.event, (...args) => {
             handler
-              .execute(...args, this)
+              .run(...args, this)
               .catch((error) => this.logger.error(error));
           });
         }
@@ -228,15 +228,11 @@ export class ImperialClient<
 
       if (handler.once) {
         this.once(handler.event, (...args) => {
-          handler
-            .execute(...args, this)
-            .catch((error) => this.logger.error(error));
+          handler.run(...args, this).catch((error) => this.logger.error(error));
         });
       } else {
         this.on(handler.event, (...args) => {
-          handler
-            .execute(...args, this)
-            .catch((error) => this.logger.error(error));
+          handler.run(...args, this).catch((error) => this.logger.error(error));
         });
       }
     });

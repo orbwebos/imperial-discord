@@ -7,7 +7,7 @@ export class MessageCreateHandler extends Handler {
     super({ event: 'messageCreate' });
   }
 
-  public async execute(message: Message) {
+  public async run(message: Message) {
     const commands = await commandsTriggeredByMessage(message);
 
     if (!commands) {

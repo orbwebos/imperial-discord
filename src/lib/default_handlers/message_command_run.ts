@@ -9,7 +9,7 @@ export class MessageCommandRunHandler extends Handler {
     super({ event: 'messageCommandRun' });
   }
 
-  public async execute(message: Message, commands: Command[]) {
+  public async run(message: Message, commands: Command[]) {
     const where =
       message.channel instanceof DMChannel || message.channel.partial === true
         ? 'through DMs'

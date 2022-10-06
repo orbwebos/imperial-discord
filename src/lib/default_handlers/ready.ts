@@ -6,7 +6,7 @@ export class ReadyHandler extends Handler {
     super({ event: 'ready', once: true });
   }
 
-  public async execute(client: Client) {
+  public async run(client: Client) {
     const transcurred =
       client.readyAt.getTime() - client.instantiatedAt.getTime();
 
