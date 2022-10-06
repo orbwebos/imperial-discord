@@ -1,18 +1,18 @@
 import { Component } from './component';
 
 export interface HandlerOptions {
-  name?: string;
+  event?: string;
   once?: boolean;
 }
 
 export class Handler extends Component {
-  public name: string;
+  public event: string;
   public once: boolean = false;
 
   public constructor(options?: HandlerOptions) {
     super();
 
-    this.name = options?.name ?? this.deriveEventName();
+    this.event = options?.event ?? this.deriveEventName();
     this.once = options?.once ?? this.once;
   }
 

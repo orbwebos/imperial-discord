@@ -3,7 +3,7 @@ import { Client } from 'discord.js';
 
 export class ReadyHandler extends Handler {
   public constructor() {
-    super({ name: 'ready', once: true });
+    super({ event: 'ready', once: true });
   }
 
   public async execute(client: Client) {

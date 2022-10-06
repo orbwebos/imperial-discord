@@ -4,7 +4,7 @@ import { commandsTriggeredByMessage } from '../message';
 
 export class MessageCreateHandler extends Handler {
   public constructor() {
-    super({ name: 'messageCreate' });
+    super({ event: 'messageCreate' });
   }
 
   public async execute(message: Message) {

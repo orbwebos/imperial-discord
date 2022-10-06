@@ -195,15 +195,18 @@ export class ImperialClient<
     for (const HandlerConstructor of handlers) {
       const handler: Handler = new HandlerConstructor();
 
-      if (isNullOrUndefined(options) || shouldRegister(options[handler.name])) {
+      if (
+        isNullOrUndefined(options) ||
+        shouldRegister(options[handler.event])
+      ) {
         if (handler.once) {
-          this.once(handler.name, (...args) => {
+          this.once(handler.event, (...args) => {
             handler
               .execute(...args, this)
               .catch((error) => this.logger.error(error));
           });
         } else {
-          this.on(handler.name, (...args) => {
+          this.on(handler.event, (...args) => {
             handler
               .execute(...args, this)
               .catch((error) => this.logger.error(error));
@@ -224,13 +227,13 @@ export class ImperialClient<
       const handler: Handler = new (Object.values(raw)[0] as typeof Handler)();
 
       if (handler.once) {
-        this.once(handler.name, (...args) => {
+        this.once(handler.event, (...args) => {
           handler
             .execute(...args, this)
             .catch((error) => this.logger.error(error));
         });
       } else {
-        this.on(handler.name, (...args) => {
+        this.on(handler.event, (...args) => {
           handler
             .execute(...args, this)
             .catch((error) => this.logger.error(error));
