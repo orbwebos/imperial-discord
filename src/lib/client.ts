@@ -115,75 +115,7 @@ export class ImperialClient<
     this.handlerRecord = new HandlerRecord(this.handlersDirectory);
   }
 
-  /**
-   * Adds a command to the record.
-   * @param command The command to add.
-   */
-  public addCommandToRecord(command: Command): void {
-    this.commandRecord.set(command.name, command);
-  }
-
-  /**
-   * Processes a path, and returns a Command if it contains one.
-   * @param path The path to be processed.
-   * @returns An Imperial Discord Command.
-   */
-  public processCommandPath(path: string): Command {
-    // Dynamically import the file, and find the object
-    // that the user marked as a command
-    // eslint-disable-next-line import/no-dynamic-require, global-require
-    const raw = require(path);
-    // TODO: search by class signature (like object methods), rather than by
-    // name signifier (like ending in "command"), so that the user can name
-    // their command classes anything
-    const commandName = Object.keys(raw).find((s) =>
-      s.toLowerCase().endsWith('command')
-    );
-
-    // Throw an error if the passed path wasn't a command
-    if (!commandName) {
-      throw new Error('non-command file processed');
-    }
-
-    // Instantiates the command
-    const CmdConst = raw[commandName] as typeof Command;
-    const command = new CmdConst();
-
-    // Derives the command's category if none was given
-    if (!command.category) {
-      const dirpath = dirname(path);
-
-      if (dirpath === resolve(this.commandsDirectory)) {
-        command.category = this.defaultCategoryName;
-      } else {
-        command.category = basename(dirpath.toLowerCase());
-      }
-    }
-
-    // Derives the command's environment context if none is set
-    if (!command.environment) {
-      command.environment = { path };
-    }
-
-    return command;
-  }
-
-  public getCommandsInPath(path: PathLike): Command[] {
-    const commandFiles = readdirDepthTwoAbsoluteSync(path as string) // fix typing
-      .filter((filePath) => filePath.endsWith('.js'));
-
-    return commandFiles.map((filePath) => this.processCommandPath(filePath));
-  }
-
-  public async setupCommands(path: PathLike) {
-    this.getCommandsInPath(path).forEach((command) =>
-      this.addCommandToRecord(command)
-    );
-
-    this.logger.info('Command record loaded.');
-  }
-
-  public async setupDefaultHandlers(options: DefaultHandlersOptions) {
+  public setupDefaultHandlers(options: DefaultHandlersOptions) {
     const shouldRegister = (o: boolean) => isNullOrUndefined(o) || o === true;
     const handlers = [
       ReadyHandler,
@@ -202,22 +134,6 @@ export class ImperialClient<
         handler.init();
       }
     }
-  }
-
-  public async setupHandlers(path: PathLike) {
-    const handlerFiles = readdirSync(path).filter((file) =>
-      file.endsWith('.js')
-    );
-
-    handlerFiles.forEach((file: string) => {
-      // eslint-disable-next-line global-require, import/no-dynamic-require
-      const raw = require(`${path}/${file}`);
-      const handler: Handler = new (Object.values(raw)[0] as typeof Handler)();
-
-      handler.init();
-    });
-
-    this.logger.info('Event handlers loaded.');
   }
 
   public isOwner(id: string): boolean {
@@ -372,9 +288,13 @@ export class ImperialClient<
   }
 
   public async login(token?: string): Promise<string> {
-    await this.setupCommands(this.commandsDirectory);
-    await this.setupDefaultHandlers(this.defaultHandlersOptions);
-    await this.setupHandlers(this.handlersDirectory);
+    this.commandRecord.syncAll();
+    this.logger.info('Command record synchronized.');
+
+    this.setupDefaultHandlers(this.defaultHandlersOptions);
+
+    this.handlerRecord.syncAll();
+    this.logger.info('Handler record synchronized.');
 
     const login = await super.login(token);
 

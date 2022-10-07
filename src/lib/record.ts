@@ -1,5 +1,6 @@
 import { Component } from './component';
 import { ExtendedCollection } from './extended_collection';
+import { readdirDepthTwoAbsoluteSync } from './util';
 
 export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
   public path: string;
@@ -8,5 +9,25 @@ export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
     super();
 
     this.path = path;
+  }
+
+  public syncAll() {
+    const files = readdirDepthTwoAbsoluteSync(this.path).filter((filePath) =>
+      filePath.endsWith('.js')
+    );
+
+    files.forEach((filePath) => {
+      const raw = require(filePath);
+      const name = Object.keys(raw)[0];
+
+      const ComponentCtor = raw[name] as new () => V;
+      const component = new ComponentCtor();
+
+      if (typeof component['init'] === 'function') {
+        component['init']();
+      }
+
+      this.set(component['name'] ?? name, component);
+    });
   }
 }
