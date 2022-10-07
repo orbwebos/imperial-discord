@@ -20,7 +20,6 @@ export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
 
     files.forEach((filePath) => {
       const raw = require(filePath);
-      this.base.logger.trace(raw);
       const name = Object.keys(raw).find((s) =>
         s.toLowerCase().endsWith(this.discriminator)
       );
