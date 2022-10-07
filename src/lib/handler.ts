@@ -21,11 +21,15 @@ export class Handler extends Component {
   public init() {
     if (this.once) {
       this.client.once(this.event, (...args) => {
-        this.run(...args, this).catch((error) => this.logger.error(error));
+        this.run(...args, this.client).catch((error) =>
+          this.logger.error(error)
+        );
       });
     } else {
       this.client.on(this.event, (...args) => {
-        this.run(...args, this).catch((error) => this.logger.error(error));
+        this.run(...args, this.client).catch((error) =>
+          this.logger.error(error)
+        );
       });
     }
   }
