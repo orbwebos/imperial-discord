@@ -27,10 +27,10 @@ export function commandIsAppropiateToInteraction(
 
 export class InteractionCreateHandler extends Handler {
   public constructor() {
-    super({ name: 'interactionCreate' });
+    super({ event: 'interactionCreate' });
   }
 
-  public async execute(interaction: Interaction, client: Client) {
+  public async run(interaction: Interaction, client: Client) {
     // TODO: make it work on all kinds of interactions
     if (!interaction.isCommand()) {
       return;

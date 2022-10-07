@@ -1,20 +1,38 @@
 import { Component } from './component';
 
 export interface HandlerOptions {
-  name?: string;
+  event?: string;
   once?: boolean;
 }
 
 export class Handler extends Component {
-  public name: string = '';
-  public once: boolean = false;
+  public event: string;
+  public once: boolean;
 
   public constructor(options?: HandlerOptions) {
     super();
 
-    this.name = options?.name ?? this.name;
-    this.once = options?.once ?? this.once;
+    this.event = options?.event ?? this.deriveEventName();
+    this.once = options?.once ?? false;
   }
 
-  public async execute?(...values: unknown[]): Promise<unknown>;
+  public async run?(...values: unknown[]): Promise<unknown>;
+
+  public init() {
+    if (this.once) {
+      this.client.once(this.event, (...args) => {
+        this.run(...args, this).catch((error) => this.logger.error(error));
+      });
+    } else {
+      this.client.on(this.event, (...args) => {
+        this.run(...args, this).catch((error) => this.logger.error(error));
+      });
+    }
+  }
+
+  private deriveEventName(): string {
+    const noSuffix = this.constructor.name.replace(/([A-Z])[a-z]*$/, '');
+
+    return noSuffix.charAt(0).toLowerCase() + noSuffix.substring(1);
+  }
 }
