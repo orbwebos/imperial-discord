@@ -7,16 +7,28 @@ export interface HandlerOptions {
 
 export class Handler extends Component {
   public event: string;
-  public once: boolean = false;
+  public once: boolean;
 
   public constructor(options?: HandlerOptions) {
     super();
 
     this.event = options?.event ?? this.deriveEventName();
-    this.once = options?.once ?? this.once;
+    this.once = options?.once ?? false;
   }
 
   public async run?(...values: unknown[]): Promise<unknown>;
+
+  public init() {
+    if (this.once) {
+      this.client.once(this.event, (...args) => {
+        this.run(...args, this).catch((error) => this.logger.error(error));
+      });
+    } else {
+      this.client.on(this.event, (...args) => {
+        this.run(...args, this).catch((error) => this.logger.error(error));
+      });
+    }
+  }
 
   private deriveEventName(): string {
     const noSuffix = this.constructor.name.replace(/([A-Z])[a-z]*$/, '');

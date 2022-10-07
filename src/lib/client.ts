@@ -199,19 +199,7 @@ export class ImperialClient<
         isNullOrUndefined(options) ||
         shouldRegister(options[handler.event])
       ) {
-        if (handler.once) {
-          this.once(handler.event, (...args) => {
-            handler
-              .run(...args, this)
-              .catch((error) => this.logger.error(error));
-          });
-        } else {
-          this.on(handler.event, (...args) => {
-            handler
-              .run(...args, this)
-              .catch((error) => this.logger.error(error));
-          });
-        }
+        handler.init();
       }
     }
   }
@@ -226,15 +214,7 @@ export class ImperialClient<
       const raw = require(`${path}/${file}`);
       const handler: Handler = new (Object.values(raw)[0] as typeof Handler)();
 
-      if (handler.once) {
-        this.once(handler.event, (...args) => {
-          handler.run(...args, this).catch((error) => this.logger.error(error));
-        });
-      } else {
-        this.on(handler.event, (...args) => {
-          handler.run(...args, this).catch((error) => this.logger.error(error));
-        });
-      }
+      handler.init();
     });
 
     this.logger.info('Event handlers loaded.');
