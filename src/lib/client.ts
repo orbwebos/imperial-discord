@@ -107,7 +107,7 @@ export class ImperialClient<
     this.handlersDirectory =
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
-    this.commandRecord = new CommandRecord();
+    this.commandRecord = new CommandRecord(this.commandsDirectory);
   }
 
   /**
