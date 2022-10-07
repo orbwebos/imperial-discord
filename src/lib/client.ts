@@ -1,17 +1,13 @@
-import { readdirSync, PathLike } from 'fs';
-import { join, dirname, resolve, basename } from 'path';
+import { join } from 'path';
 import {
   Client,
   ClientOptions,
   SlashCommandBuilder,
   RESTPostAPIApplicationCommandsJSONBody,
-  REST,
-  Routes,
   ContextMenuCommandBuilder,
   ChatInputApplicationCommandData,
   UserApplicationCommandData,
   MessageApplicationCommandData,
-  ApplicationCommand,
 } from 'discord.js';
 import {
   DefaultHandlersOptions,
@@ -20,11 +16,7 @@ import {
 import { ImperialLogger, Logger } from './logger';
 import { ChatInputCommandBuilder, Command } from './command';
 import type { Handler } from './handler';
-import {
-  readdirDepthTwoAbsoluteSync,
-  isNullOrUndefined,
-  isNullishOrEmpty,
-} from './util';
+import { isNullOrUndefined, isNullishOrEmpty } from './util';
 import { ReadyHandler } from './default_handlers/ready';
 import { InteractionCreateHandler } from './default_handlers/interaction_create';
 import { MessageCreateHandler } from './default_handlers/message_create';

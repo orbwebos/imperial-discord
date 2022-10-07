@@ -1,7 +1,5 @@
-import { Collection, DMChannel, Message, ThreadChannel } from 'discord.js';
+import { Message } from 'discord.js';
 import { Command } from './command';
-import { Replier } from './replier';
-import { EmbedTitle } from './title';
 
 export async function commandsTriggeredByMessage(
   message: Message

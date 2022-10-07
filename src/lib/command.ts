@@ -4,7 +4,6 @@ import {
   ContextMenuCommandBuilder,
   ContextMenuCommandInteraction,
   Message,
-  RESTPostAPIApplicationCommandsJSONBody,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
