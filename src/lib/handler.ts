@@ -18,7 +18,7 @@ export class Handler extends Component {
 
   public async run?(...values: unknown[]): Promise<unknown>;
 
-  public init() {
+  public syncHook() {
     if (this.once) {
       this.client.once(this.event, (...args) => {
         this.run(...args, this.client).catch((error) =>
@@ -32,6 +32,8 @@ export class Handler extends Component {
         );
       });
     }
+
+    return super.syncHook();
   }
 
   private deriveEventName(): string {

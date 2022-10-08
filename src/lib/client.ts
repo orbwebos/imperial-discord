@@ -123,7 +123,7 @@ export class ImperialClient<
         isNullOrUndefined(options) ||
         shouldRegister(options[handler.event])
       ) {
-        handler.init();
+        handler.syncHook();
       }
     }
   }
