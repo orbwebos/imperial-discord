@@ -5,10 +5,6 @@ import { Replier } from '../replier';
 import { EmbedTitle } from '../title';
 
 export class MessageCommandRunHandler extends Handler {
-  public constructor() {
-    super({ event: 'messageCommandRun' });
-  }
-
   public async run(message: Message, commands: Command[]) {
     const where =
       message.channel instanceof DMChannel || message.channel.partial === true
