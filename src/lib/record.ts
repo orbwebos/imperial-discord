@@ -13,12 +13,12 @@ export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
     this.discriminator = discriminator.toLowerCase();
   }
 
-  public syncAll() {
+  public async syncAll() {
     const files = readdirDepthTwoAbsoluteSync(this.path).filter((filePath) =>
       filePath.endsWith('.js')
     );
 
-    files.forEach((filePath) => {
+    for (const filePath of files) {
       const raw = require(filePath);
       const name = Object.keys(raw).find((s) =>
         s.toLowerCase().endsWith(this.discriminator)
@@ -26,12 +26,9 @@ export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
 
       const ComponentCtor = raw[name] as new () => V;
       const component = new ComponentCtor();
-
-      if (typeof component['init'] === 'function') {
-        component['init']();
-      }
+      await component.syncHook();
 
       this.set(component['name'] ?? name, component);
-    });
+    }
   }
 }
