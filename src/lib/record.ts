@@ -2,7 +2,7 @@ import { Component } from './component';
 import { ExtendedCollection } from './extended_collection';
 import { readdirDepthTwoAbsoluteSync } from './util';
 
-export class Record<K, V extends Component> extends ExtendedCollection<K, V> {
+export class Record<V extends Component> extends ExtendedCollection<string, V> {
   public path: string;
   public discriminator: string;
 
