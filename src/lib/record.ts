@@ -36,6 +36,7 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
     }
 
     this.delete(name);
+    component.unsyncHook();
 
     return component;
   }
@@ -51,9 +52,8 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
   }
 
   public async unsyncAll() {
-    for (const [key, component] of this) {
-      this.delete(key);
-      component.unsyncHook();
+    for (const key of this.keys()) {
+      this.unsync(key);
     }
   }
 }
