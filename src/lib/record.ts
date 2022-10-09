@@ -24,10 +24,20 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
     await component.syncHook();
 
     this.set(component['name'] ?? name, component);
+
+    return component;
   }
 
   public async unsync(name: string) {
+    const component = this.get(name);
+
+    if (!component) {
+      throw new Error(`No component by the name "${name}" was found to unsync`);
+    }
+
     this.delete(name);
+
+    return component;
   }
 
   public async syncAll() {
