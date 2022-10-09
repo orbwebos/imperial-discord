@@ -13,22 +13,37 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
     this.discriminator = discriminator.toLowerCase();
   }
 
+  public async sync(path: string) {
+    const raw = require(path);
+    const name = Object.keys(raw).find((s) =>
+      s.toLowerCase().endsWith(this.discriminator)
+    );
+
+    const ComponentCtor = raw[name] as new () => V;
+    const component = new ComponentCtor();
+    await component.syncHook();
+
+    this.set(component['name'] ?? name, component);
+  }
+
+  public async unsync(name: string) {
+    this.delete(name);
+  }
+
   public async syncAll() {
     const files = readdirDepthTwoAbsoluteSync(this.path).filter((filePath) =>
       filePath.endsWith('.js')
     );
 
     for (const filePath of files) {
-      const raw = require(filePath);
-      const name = Object.keys(raw).find((s) =>
-        s.toLowerCase().endsWith(this.discriminator)
-      );
+      this.sync(filePath);
+    }
+  }
 
-      const ComponentCtor = raw[name] as new () => V;
-      const component = new ComponentCtor();
-      await component.syncHook();
-
-      this.set(component['name'] ?? name, component);
+  public async unsyncAll() {
+    for (const [key, component] of this) {
+      this.delete(key);
+      component.unsyncHook();
     }
   }
 }
