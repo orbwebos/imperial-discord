@@ -17,13 +17,13 @@ import { ImperialLogger, Logger } from './logger';
 import { ChatInputCommandBuilder, Command } from './command';
 import type { Handler } from './handler';
 import { isNullOrUndefined, isNullishOrEmpty } from './util';
-import { ReadyHandler } from './default_handlers/ready';
-import { InteractionCreateHandler } from './default_handlers/interaction_create';
-import { MessageCreateHandler } from './default_handlers/message_create';
+import { ReadyHandler } from '../handlers/ready';
+import { InteractionCreateHandler } from '../handlers/interaction_create';
+import { MessageCreateHandler } from '../handlers/message_create';
 import { getProcessPath, getVersion } from './root_path';
 import { CommandRecord } from './command_record';
 import { defaultRegisteringSelector } from './smart_register';
-import { MessageCommandRunHandler } from './default_handlers/message_command_run';
+import { MessageCommandRunHandler } from '../handlers/message_command_run';
 import { base } from './base';
 import { HandlerRecord } from './handler_record';
 
