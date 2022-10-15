@@ -101,18 +101,22 @@ export class ImperialClient<
     this.shouldRegisterCommands = options.registerCommands ?? true;
     this.defaultHandlersOptions = options.defaultHandlers;
 
-    this.baseDirectory = options.baseDirectory ?? getProcessPath();
-    this.commandsDirectory =
-      options.commandsDirectory ?? join(this.baseDirectory, './commands');
-    this.handlersDirectory =
-      options.handlersDirectory ?? join(this.baseDirectory, './handlers');
-
     this.records = new RecordManager();
     base.records = this.records;
 
+    this.baseDirectory = options.baseDirectory ?? getProcessPath();
+
     this.records
-      .add(new CommandRecord(this.commandsDirectory))
-      .add(new HandlerRecord(this.handlersDirectory));
+      .add(
+        new CommandRecord(
+          options.commandsDirectory ?? join(this.baseDirectory, './commands')
+        )
+      )
+      .add(
+        new HandlerRecord(
+          options.commandsDirectory ?? join(this.baseDirectory, './commands')
+        )
+      );
   }
 
   public setupDefaultHandlers(options: DefaultHandlersOptions) {
@@ -288,9 +292,9 @@ export class ImperialClient<
   }
 
   public async login(token?: string): Promise<string> {
-    for (const record of this.records.values()) {
-      await record.syncAll();
-    }
+    await Promise.all(
+      this.records.valuesToArray().map((record) => record.syncAll())
+    );
 
     this.setupDefaultHandlers(this.defaultHandlersOptions);
 
