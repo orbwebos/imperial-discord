@@ -2,15 +2,23 @@ import { Component } from './component';
 import { ExtendedCollection } from './extended_collection';
 import { readdirDepthTwoAbsoluteSync } from './util';
 
+export interface RecordOptions {
+  name: string;
+  path: string;
+  discriminator: string;
+}
+
 export class Record<V extends Component> extends ExtendedCollection<string, V> {
+  public name: string;
   public path: string;
   public discriminator: string;
 
-  public constructor(path: string, discriminator: string) {
+  public constructor(options: RecordOptions) {
     super();
 
-    this.path = path;
-    this.discriminator = discriminator.toLowerCase();
+    this.name = options.name;
+    this.path = options.path;
+    this.discriminator = options.discriminator.toLowerCase();
   }
 
   public async sync(path: string) {
