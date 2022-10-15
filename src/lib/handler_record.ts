@@ -2,7 +2,7 @@ import { Handler } from './handler';
 import { Record } from './record';
 
 export class HandlerRecord extends Record<Handler> {
-  public constructor(path: string) {
-    super({ name: 'handlers', discriminator: 'handler', path });
+  public constructor() {
+    super({ name: 'handlers', discriminator: 'handler' });
   }
 }

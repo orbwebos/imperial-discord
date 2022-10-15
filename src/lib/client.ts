@@ -108,36 +108,17 @@ export class ImperialClient<
 
     this.records
       .add(
-        new CommandRecord(
+        new CommandRecord().addPath(
           options.commandsDirectory ?? join(this.baseDirectory, './commands')
         )
       )
       .add(
-        new HandlerRecord(
-          options.commandsDirectory ?? join(this.baseDirectory, './commands')
-        )
+        new HandlerRecord()
+          .addPath(
+            options.commandsDirectory ?? join(this.baseDirectory, './handlers')
+          )
+          .addPath(join(__dirname, '..', 'handlers'))
       );
-  }
-
-  public setupDefaultHandlers(options: DefaultHandlersOptions) {
-    const shouldRegister = (o: boolean) => isNullOrUndefined(o) || o === true;
-    const handlers = [
-      ReadyHandler,
-      MessageCommandRunHandler,
-      InteractionCreateHandler,
-      MessageCreateHandler,
-    ];
-
-    for (const HandlerConstructor of handlers) {
-      const handler: Handler = new HandlerConstructor();
-
-      if (
-        isNullOrUndefined(options) ||
-        shouldRegister(options[handler.event])
-      ) {
-        handler.syncHook();
-      }
-    }
   }
 
   public isOwner(id: string): boolean {
@@ -295,8 +276,6 @@ export class ImperialClient<
     await Promise.all(
       this.records.valuesToArray().map((record) => record.syncAll())
     );
-
-    this.setupDefaultHandlers(this.defaultHandlersOptions);
 
     const login = await super.login(token);
 

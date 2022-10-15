@@ -1,24 +1,33 @@
 import { Component } from './component';
 import { ExtendedCollection } from './extended_collection';
 import { readdirWalk } from './util';
+import { resolve } from 'path';
 
 export interface RecordOptions {
   name: string;
-  path: string;
+  paths?: string[];
   discriminator: string;
 }
 
 export class Record<V extends Component> extends ExtendedCollection<string, V> {
   public name: string;
-  public path: string;
+  public paths: Set<string>;
   public discriminator: string;
 
   public constructor(options: RecordOptions) {
     super();
 
     this.name = options.name;
-    this.path = options.path;
+    this.paths = new Set(options.paths ?? []);
     this.discriminator = options.discriminator.toLowerCase();
+  }
+
+  public addPath(path: string): this {
+    const r = resolve(path);
+
+    this.paths.add(r);
+
+    return this;
   }
 
   public async sync(path: string) {
@@ -52,9 +61,11 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
   public async syncAll() {
     await this.unsyncAll();
 
-    for await (const commandPath of readdirWalk(this.path)) {
-      if (commandPath.endsWith('.js')) {
-        this.sync(commandPath);
+    for (const path of this.paths) {
+      for await (const commandPath of readdirWalk(path)) {
+        if (commandPath.endsWith('.js')) {
+          await this.sync(commandPath);
+        }
       }
     }
   }
