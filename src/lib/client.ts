@@ -129,7 +129,7 @@ export class ImperialClient<
    * Registers the user's commands using the options that were passed to each.
    */
   public async smartRegisterCommands(options?: SmartRegisterOptions) {
-    const record = options?.record ?? this.commandRecord;
+    const record = options?.record ?? this.records.get('commands');
 
     const commands = await (options?.selectingFn
       ? options.selectingFn(record)

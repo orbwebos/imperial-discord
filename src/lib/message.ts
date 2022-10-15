@@ -10,10 +10,7 @@ export async function commandsTriggeredByMessage(
   }
 
   const commands: Command[] = [];
-  // TODO: temporal
-  for (const command of (
-    message.client.records.get('commands') as unknown as CommandRecord
-  ).values()) {
+  for (const command of message.client.records.get('commands').values()) {
     if (command.hasMessage() && (await command.runMessageTrigger(message))) {
       commands.push(command);
     }

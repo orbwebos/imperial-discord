@@ -33,10 +33,9 @@ export class InteractionCreateHandler extends Handler {
       return;
     }
 
-    // TODO: temporal solution
-    const command = (
-      client.records.get('commands') as unknown as CommandRecord
-    ).find((cmd) => commandIsAppropiateToInteraction(cmd, interaction));
+    const command = client.records
+      .get('commands')
+      .find((cmd) => commandIsAppropiateToInteraction(cmd, interaction));
 
     if (!command) {
       return;
