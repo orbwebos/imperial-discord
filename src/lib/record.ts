@@ -1,6 +1,6 @@
 import { Component } from './component';
 import { ExtendedCollection } from './extended_collection';
-import { readdirDepthTwoAbsoluteSync } from './util';
+import { readdirWalk } from './util';
 
 export interface RecordOptions {
   name: string;
@@ -50,12 +50,12 @@ export class Record<V extends Component> extends ExtendedCollection<string, V> {
   }
 
   public async syncAll() {
-    const files = readdirDepthTwoAbsoluteSync(this.path).filter((filePath) =>
-      filePath.endsWith('.js')
-    );
+    await this.unsyncAll();
 
-    for (const filePath of files) {
-      this.sync(filePath);
+    for await (const commandPath of readdirWalk(this.path)) {
+      if (commandPath.endsWith('.js')) {
+        this.sync(commandPath);
+      }
     }
   }
 

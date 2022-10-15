@@ -11,8 +11,8 @@ import { basename, join } from 'path';
 import { createHash } from 'crypto';
 import { CommandRecord } from './command_record';
 import { Command } from './command';
-import { readdirAbsoluteSync } from './util';
 import { getProcessPath } from './root_path';
+import { readdirWalk } from './util';
 
 const commandsReferencesPath = join(
   getProcessPath(),
@@ -30,8 +30,13 @@ export interface CommandReference {
   hash: string;
 }
 
-export function allCommandReferences(commandsPath: string): CommandReference[] {
-  const paths = readdirAbsoluteSync(commandsPath);
+export async function allCommandReferences(
+  commandsPath: string
+): Promise<CommandReference[]> {
+  const paths: string[] = [];
+  for await (const path of readdirWalk(commandsPath)) {
+    paths.push(path);
+  }
 
   return paths
     .map((path) => {
@@ -42,8 +47,10 @@ export function allCommandReferences(commandsPath: string): CommandReference[] {
     .filter((command) => command);
 }
 
-export function lookUpCommandReference(hash: string): CommandReference {
-  const reference = allCommandReferences(commandsReferencesPath).find(
+export async function lookUpCommandReference(
+  hash: string
+): Promise<CommandReference> {
+  const reference = (await allCommandReferences(commandsReferencesPath)).find(
     (reference) => reference.hash === hash
   );
 
@@ -58,11 +65,11 @@ function pathToReference(reference: CommandReference): string {
   return newReferencePath(reference.hash);
 }
 
-export function upsertCommandReference(
+export async function upsertCommandReference(
   commandPath: string,
   hash: string
-): CommandReference {
-  const references = allCommandReferences(commandsReferencesPath);
+): Promise<CommandReference> {
+  const references = await allCommandReferences(commandsReferencesPath);
 
   for (const reference of references) {
     if (reference.path === commandPath && reference.hash === hash) {
@@ -85,10 +92,10 @@ export function upsertCommandReference(
   return { path: commandPath, hash };
 }
 
-export function removeStaleReferences(): CommandReference[] {
+export async function removeStaleReferences(): Promise<CommandReference[]> {
   const deleted: CommandReference[] = [];
 
-  for (const reference of allCommandReferences(commandsReferencesPath)) {
+  for (const reference of await allCommandReferences(commandsReferencesPath)) {
     if (!existsSync(reference.path) || !statSync(reference.path).isFile()) {
       deleted.push(reference);
 
@@ -112,8 +119,8 @@ export async function defaultRegisteringSelector(
   for (const path of commandPaths) {
     const hash = sha1(readFileSync(path).toString());
 
-    const reference = lookUpCommandReference(hash);
-    const newReference = upsertCommandReference(path, hash);
+    const reference = await lookUpCommandReference(hash);
+    const newReference = await upsertCommandReference(path, hash);
 
     if (reference.hash === newReference.hash) {
       restrictedPaths.push(path);

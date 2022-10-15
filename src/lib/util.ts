@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import { readdir } from 'fs/promises';
+import { resolve } from 'path';
 
 export type Nullish = null | undefined;
 
@@ -17,14 +17,18 @@ export function isFunction(o: unknown): o is Function {
 
 export type MaybePromise<T> = T | Promise<T>;
 
-export function readdirAbsoluteSync(path: string): string[] {
-  return readdirSync(path).map((file) => join(path, file));
-}
+export async function* readdirWalk(
+  path: string
+): AsyncIterableIterator<string> {
+  const dirents = await readdir(path, { withFileTypes: true });
 
-export function readdirDepthTwoAbsoluteSync(path: string): string[] {
-  return readdirAbsoluteSync(path).flatMap((filePath) =>
-    statSync(filePath).isDirectory()
-      ? readdirAbsoluteSync(filePath)
-      : [filePath]
-  );
+  for (const dirent of dirents) {
+    const rpath = resolve(path, dirent.name);
+
+    if (dirent.isDirectory()) {
+      yield* readdirWalk(rpath);
+    } else {
+      yield rpath;
+    }
+  }
 }
