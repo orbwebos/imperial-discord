@@ -1,5 +1,6 @@
 import { Client, Interaction } from 'discord.js';
 import { Command } from '../lib/command';
+import { CommandRecord } from '../lib/command_record';
 import { Handler } from '../lib/handler';
 import { Replier } from '../lib/replier';
 import { EmbedTitle } from '../lib/title';
@@ -32,9 +33,10 @@ export class InteractionCreateHandler extends Handler {
       return;
     }
 
-    const command = client.commandRecord.find((cmd) =>
-      commandIsAppropiateToInteraction(cmd, interaction)
-    );
+    // TODO: temporal solution
+    const command = (
+      client.records.get('commands') as unknown as CommandRecord
+    ).find((cmd) => commandIsAppropiateToInteraction(cmd, interaction));
 
     if (!command) {
       return;

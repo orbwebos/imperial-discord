@@ -26,6 +26,7 @@ import { defaultRegisteringSelector } from './smart_register';
 import { MessageCommandRunHandler } from '../handlers/message_command_run';
 import { base } from './base';
 import { HandlerRecord } from './handler_record';
+import { RecordManager } from './record_manager';
 
 /**
  * The extension of discord.js' Client class which is at the heart of Imperial Discord.
@@ -62,6 +63,9 @@ export class ImperialClient<
 
   /** Whether the client should attempt to register commands at startup. */
   public shouldRegisterCommands: boolean;
+
+  /** The Record manager. */
+  public records: RecordManager;
 
   /** The commands record. */
   public commandRecord: CommandRecord;
@@ -103,8 +107,12 @@ export class ImperialClient<
     this.handlersDirectory =
       options.handlersDirectory ?? join(this.baseDirectory, './handlers');
 
-    this.commandRecord = new CommandRecord(this.commandsDirectory);
-    this.handlerRecord = new HandlerRecord(this.handlersDirectory);
+    this.records = new RecordManager();
+    base.records = this.records;
+
+    this.records
+      .add(new CommandRecord(this.commandsDirectory))
+      .add(new HandlerRecord(this.handlersDirectory));
   }
 
   public setupDefaultHandlers(options: DefaultHandlersOptions) {
@@ -280,13 +288,11 @@ export class ImperialClient<
   }
 
   public async login(token?: string): Promise<string> {
-    this.commandRecord.syncAll();
-    this.logger.info('Command record synchronized.');
+    for (const record of this.records.values()) {
+      await record.syncAll();
+    }
 
     this.setupDefaultHandlers(this.defaultHandlersOptions);
-
-    this.handlerRecord.syncAll();
-    this.logger.info('Handler record synchronized.');
 
     const login = await super.login(token);
 
@@ -353,6 +359,7 @@ declare module 'discord.js' {
     commandsDirectory: string;
     handlersDirectory: string;
     shouldRegisterCommands: boolean;
+    records: RecordManager;
     commandRecord: CommandRecord;
     handlerRecord: HandlerRecord;
 

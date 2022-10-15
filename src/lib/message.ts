@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import { Command } from './command';
+import { CommandRecord } from './command_record';
 
 export async function commandsTriggeredByMessage(
   message: Message
@@ -9,7 +10,10 @@ export async function commandsTriggeredByMessage(
   }
 
   const commands: Command[] = [];
-  for (const [, command] of message.client.commandRecord) {
+  // TODO: temporal
+  for (const command of (
+    message.client.records.get('commands') as unknown as CommandRecord
+  ).values()) {
     if (command.hasMessage() && (await command.runMessageTrigger(message))) {
       commands.push(command);
     }
