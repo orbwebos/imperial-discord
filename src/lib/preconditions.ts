@@ -205,36 +205,3 @@ export abstract class Precondition extends Component {
     return Reflect.has(this, 'messageCheck');
   }
 }
-
-export class OwnerExclusivePrecondition extends Precondition {
-  public async chatInputCheck(interaction: ChatInputCommandInteraction) {
-    return this.checkIfOwner(interaction.user.id);
-  }
-
-  public async contextMenuCheck(interaction: ContextMenuCommandInteraction) {
-    return this.checkIfOwner(interaction.user.id);
-  }
-
-  public async messageCheck(message: Message) {
-    return this.checkIfOwner(message.author.id);
-  }
-
-  private checkIfOwner(id: string) {
-    return this.client.ownerIds.includes(id)
-      ? this.ok()
-      : this.error('You need owner permission to run this.');
-  }
-}
-
-export class MustBeReplyPrecondition extends Precondition {
-  public async messageCheck(message: Message) {
-    if (message.reference === null) {
-      return this.error('Your message must be a reply to another message.');
-    }
-
-    return this.ok();
-  }
-}
-
-export const ownerExclusive = new OwnerExclusivePrecondition();
-export const mustBeReply = new MustBeReplyPrecondition();

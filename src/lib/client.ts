@@ -27,6 +27,7 @@ import { MessageCommandRunHandler } from '../handlers/message_command_run';
 import { base } from './base';
 import { HandlerRecord } from './handler_record';
 import { RecordManager } from './record_manager';
+import { PreconditionRecord } from './precondition_record';
 
 /**
  * The extension of discord.js' Client class which is at the heart of Imperial Discord.
@@ -118,6 +119,9 @@ export class ImperialClient<
             options.commandsDirectory ?? join(this.baseDirectory, './handlers')
           )
           .addPath(join(__dirname, '..', 'handlers'))
+      )
+      .add(
+        new PreconditionRecord().addPath(join(__dirname, '..', 'preconditions'))
       );
   }
 
